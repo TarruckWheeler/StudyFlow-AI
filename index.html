@@ -1,0 +1,1745 @@
+<!DOCTYPE html>
+<!--
+    StudyFlow AI - Executive Function Assistant for Learning Disabilities
+    Created by: Tarruck Wheeler
+    GitHub: https://github.com/TarruckWheeler
+    Email: tarruck@stanford.edu
+    Portfolio: https://tarruckwheeler.github.io
+    
+    Copyright (c) 2024 Tarruck Wheeler
+    Licensed under MIT License
+    
+    Built with love for students with ADHD, autism, and learning disabilities
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyFlow AI - Smart Study Assistant for Learning Disabilities</title>
+    <meta name="description" content="AI-powered executive function assistant helping students with ADHD, autism, and learning disabilities break down tasks, manage time, and study effectively.">
+    <meta name="author" content="Tarruck Wheeler">
+    <meta property="og:title" content="StudyFlow AI - Executive Function Assistant">
+    <meta property="og:description" content="Created by Tarruck Wheeler - AI-powered study assistant for students with learning disabilities">
+    <meta property="og:url" content="https://tarruckwheeler.github.io/studyflow-ai/">
+    <meta property="og:type" content="website">
+    
+    <style>
+        /* 
+        * Using system fonts for better performance and compatibility
+        * No external dependencies = works in all environments
+        * System fonts are optimized for readability on each platform
+        * Better for users with dyslexia who may have custom font settings
+        */
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366F1;
+            --secondary: #8B5CF6;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --dark: #1F2937;
+            --light: #F9FAFB;
+            --white: #FFFFFF;
+            --gradient: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --radius: 12px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            background: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Loading Animation */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--white);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s;
+        }
+
+        .loader.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loader-brain {
+            width: 100px;
+            height: 100px;
+            position: relative;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .loader-brain::before {
+            content: '🧠';
+            font-size: 80px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Navigation */
+        nav {
+            background: var(--white);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .creator-link {
+            font-size: 0.8rem;
+            color: #6B7280;
+            text-decoration: none;
+            margin-left: 1rem;
+            transition: color 0.3s;
+        }
+
+        .creator-link:hover {
+            color: var(--primary);
+        }
+
+        .nav-stats {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #6B7280;
+        }
+
+        /* Main Layout */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr 350px;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .sidebar-card {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .user-profile {
+            text-align: center;
+        }
+
+        .avatar {
+            width: 80px;
+            height: 80px;
+            background: var(--gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: var(--white);
+            margin: 0 auto 1rem;
+        }
+
+        .user-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .user-streak {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            color: var(--warning);
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .quick-actions h3 {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            color: #6B7280;
+        }
+
+        .action-btn {
+            padding: 0.75rem 1rem;
+            border: none;
+            border-radius: 8px;
+            background: var(--light);
+            color: var(--dark);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-align: left;
+        }
+
+        .action-btn:hover {
+            background: var(--primary);
+            color: var(--white);
+            transform: translateX(5px);
+        }
+
+        /* Main Content */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* Task Input Section */
+        .task-input-section {
+            background: var(--gradient);
+            padding: 2rem;
+            border-radius: var(--radius);
+            color: var(--white);
+        }
+
+        .task-input-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .task-input-header h2 {
+            font-size: 1.5rem;
+        }
+
+        .ai-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .ai-indicator.active {
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(255, 255, 255, 0.8); }
+        }
+
+        .task-input-form {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .task-input {
+            flex: 1;
+            padding: 1rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--white);
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .task-input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .task-input:focus {
+            outline: none;
+            border-color: var(--white);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .submit-btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            background: var(--white);
+            color: var(--primary);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Task Breakdown */
+        .task-breakdown {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .task-breakdown-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .task-breakdown-header h3 {
+            font-size: 1.3rem;
+            color: var(--dark);
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .view-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #E5E7EB;
+            background: var(--white);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .view-btn.active {
+            background: var(--primary);
+            color: var(--white);
+            border-color: var(--primary);
+        }
+
+        .tasks-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .task-item {
+            background: var(--light);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .task-item:hover {
+            border-color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .task-item.completed {
+            opacity: 0.6;
+            text-decoration: line-through;
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 0.5rem;
+        }
+
+        .task-title {
+            font-weight: 600;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .task-time {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #6B7280;
+            font-size: 0.9rem;
+        }
+
+        .task-description {
+            color: #6B7280;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .subtasks {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding-left: 1rem;
+        }
+
+        .subtask {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: #6B7280;
+        }
+
+        .subtask input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .task-progress {
+            margin-top: 1rem;
+            background: #E5E7EB;
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .task-progress-bar {
+            height: 100%;
+            background: var(--success);
+            transition: width 0.3s;
+        }
+
+        /* Focus Timer */
+        .focus-timer {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        .timer-display {
+            font-size: 4rem;
+            font-weight: 700;
+            color: var(--primary);
+            font-family: 'Courier New', Consolas, 'Liberation Mono', monospace;
+            margin: 2rem 0;
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .timer-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .timer-btn.primary {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .timer-btn.secondary {
+            background: var(--light);
+            color: var(--dark);
+        }
+
+        .timer-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .timer-presets {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .preset-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #E5E7EB;
+            background: var(--white);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .preset-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* Right Sidebar */
+        .right-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* Study Techniques */
+        .study-techniques {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .study-techniques h3 {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+
+        .technique-card {
+            background: var(--light);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .technique-card:hover {
+            background: var(--primary);
+            color: var(--white);
+            transform: translateX(5px);
+        }
+
+        .technique-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .technique-desc {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        /* Study Buddy */
+        .study-buddy {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .study-buddy h3 {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+
+        .buddy-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem;
+            background: var(--light);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: blink 2s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .buddy-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .buddy-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .buddy-item:hover {
+            background: var(--light);
+        }
+
+        .buddy-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: var(--white);
+        }
+
+        .buddy-info {
+            flex: 1;
+        }
+
+        .buddy-name {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .buddy-status-text {
+            font-size: 0.7rem;
+            color: #6B7280;
+        }
+
+        /* Sensory Break Reminder */
+        .sensory-break {
+            background: linear-gradient(135deg, #F59E0B 0%, #EF4444 100%);
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            color: var(--white);
+            text-align: center;
+        }
+
+        .break-timer {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 1rem 0;
+            font-family: 'Courier New', Consolas, 'Liberation Mono', monospace;
+        }
+
+        .break-suggestions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .break-suggestion {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .break-suggestion:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .sidebar {
+                grid-column: 1 / -1;
+                flex-direction: row;
+                overflow-x: auto;
+            }
+            
+            .sidebar-card {
+                min-width: 250px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-stats {
+                display: none;
+            }
+            
+            .timer-display {
+                font-size: 3rem;
+            }
+            
+            .task-input-form {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                flex-direction: column;
+            }
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            background: var(--success);
+            color: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* Loading States */
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Focus Mode */
+        body.focus-mode {
+            background: var(--dark);
+        }
+
+        body.focus-mode .container > *:not(.focus-timer) {
+            opacity: 0.1;
+            pointer-events: none;
+        }
+
+        body.focus-mode .focus-timer {
+            transform: scale(1.2);
+            box-shadow: 0 20px 60px rgba(99, 102, 241, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <!-- Loader -->
+    <div class="loader" id="loader">
+        <div class="loader-brain"></div>
+        <p style="margin-top: 2rem; color: #6B7280;">Preparing your study command center...</p>
+        <p style="margin-top: 0.5rem; color: #9CA3AF; font-size: 0.9rem;">Created by Tarruck Wheeler</p>
+    </div>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div style="display: flex; align-items: center;">
+                <div class="logo">
+                    <span>🧠</span>
+                    StudyFlow AI
+                </div>
+                <a href="https://github.com/TarruckWheeler" target="_blank" class="creator-link">
+                    by Tarruck Wheeler
+                </a>
+            </div>
+            
+            <div class="nav-stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="tasksCompleted">0</div>
+                    <div class="stat-label">Tasks Done</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="focusTime">0h</div>
+                    <div class="stat-label">Focus Time</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="streakDays">7</div>
+                    <div class="stat-label">Day Streak</div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Dashboard -->
+    <div class="container">
+        <div class="dashboard-grid">
+            <!-- Left Sidebar -->
+            <div class="sidebar">
+                <div class="sidebar-card user-profile fade-in">
+                    <div class="avatar">👤</div>
+                    <div class="user-name">Study Champion</div>
+                    <div class="user-streak">
+                        <span>🔥</span>
+                        <span>7 day streak!</span>
+                    </div>
+                </div>
+
+                <div class="sidebar-card quick-actions fade-in">
+                    <h3>Quick Actions</h3>
+                    <button class="action-btn" onclick="window.app.showTechnique('pomodoro')">
+                        <span>🍅</span> Start Pomodoro
+                    </button>
+                    <button class="action-btn" onclick="window.app.createFlashcards()">
+                        <span>🎴</span> Create Flashcards
+                    </button>
+                    <button class="action-btn" onclick="window.app.startBodyDouble()">
+                        <span>👥</span> Body Double Session
+                    </button>
+                    <button class="action-btn" onclick="window.app.generateSummary()">
+                        <span>📝</span> Generate Summary
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="main-content">
+                <!-- Task Input Section -->
+                <div class="task-input-section fade-in">
+                    <div class="task-input-header">
+                        <h2>What do you need to work on?</h2>
+                        <div class="ai-indicator active">
+                            <span>🤖</span>
+                            <span>AI Ready</span>
+                        </div>
+                    </div>
+                    
+                    <form class="task-input-form" onsubmit="window.app.handleTaskSubmit(event)">
+                        <input 
+                            type="text" 
+                            class="task-input" 
+                            id="taskInput"
+                            placeholder="e.g., Write 5-page essay on climate change due Friday"
+                            autocomplete="off"
+                        >
+                        <button type="submit" class="submit-btn">
+                            <span>✨</span>
+                            <span>Break It Down</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Task Breakdown -->
+                <div class="task-breakdown fade-in">
+                    <div class="task-breakdown-header">
+                        <h3>Today's Tasks</h3>
+                        <div class="view-toggle">
+                            <button class="view-btn active" onclick="window.app.setView('list')">List</button>
+                            <button class="view-btn" onclick="window.app.setView('kanban')">Kanban</button>
+                            <button class="view-btn" onclick="window.app.setView('calendar')">Calendar</button>
+                        </div>
+                    </div>
+                    
+                    <div class="tasks-container" id="tasksContainer">
+                        <!-- Sample Task -->
+                        <div class="task-item">
+                            <div class="task-header">
+                                <div class="task-title">
+                                    <input type="checkbox" onchange="window.app.toggleTask(this)">
+                                    <span>Research climate change impacts</span>
+                                </div>
+                                <div class="task-time">
+                                    <span>⏱️</span>
+                                    <span>30 min</span>
+                                </div>
+                            </div>
+                            <div class="task-description">
+                                Find 3 credible sources about climate change effects on ocean ecosystems
+                            </div>
+                            <div class="subtasks">
+                                <div class="subtask">
+                                    <input type="checkbox" onchange="window.app.updateProgress(this)">
+                                    <span>Search academic databases</span>
+                                </div>
+                                <div class="subtask">
+                                    <input type="checkbox" onchange="window.app.updateProgress(this)">
+                                    <span>Take notes on key findings</span>
+                                </div>
+                                <div class="subtask">
+                                    <input type="checkbox" onchange="window.app.updateProgress(this)">
+                                    <span>Create bibliography entries</span>
+                                </div>
+                            </div>
+                            <div class="task-progress">
+                                <div class="task-progress-bar" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <!-- AI will add more tasks here -->
+                    </div>
+                </div>
+
+                <!-- Focus Timer -->
+                <div class="focus-timer fade-in">
+                    <h3>Focus Timer</h3>
+                    <div class="timer-display" id="timerDisplay">25:00</div>
+                    
+                    <div class="timer-controls">
+                        <button class="timer-btn primary" onclick="window.app.startTimer()">
+                            <span>▶️</span> Start
+                        </button>
+                        <button class="timer-btn secondary" onclick="window.app.pauseTimer()">
+                            <span>⏸️</span> Pause
+                        </button>
+                        <button class="timer-btn secondary" onclick="window.app.resetTimer()">
+                            <span>🔄</span> Reset
+                        </button>
+                    </div>
+                    
+                    <div class="timer-presets">
+                        <button class="preset-btn" onclick="window.app.setTimer(5)">5 min</button>
+                        <button class="preset-btn" onclick="window.app.setTimer(10)">10 min</button>
+                        <button class="preset-btn" onclick="window.app.setTimer(25)">25 min</button>
+                        <button class="preset-btn" onclick="window.app.setTimer(45)">45 min</button>
+                        <button class="preset-btn" onclick="window.app.setTimer(60)">60 min</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Sidebar -->
+            <div class="right-sidebar">
+                <!-- Study Techniques -->
+                <div class="study-techniques fade-in">
+                    <h3>Recommended Techniques</h3>
+                    
+                    <div class="technique-card" onclick="window.app.showTechnique('feynman')">
+                        <div class="technique-name">🧑‍🏫 Feynman Technique</div>
+                        <div class="technique-desc">Explain it simply to learn deeply</div>
+                    </div>
+                    
+                    <div class="technique-card" onclick="window.app.showTechnique('cornell')">
+                        <div class="technique-name">📝 Cornell Notes</div>
+                        <div class="technique-desc">Organized note-taking system</div>
+                    </div>
+                    
+                    <div class="technique-card" onclick="window.app.showTechnique('mindmap')">
+                        <div class="technique-name">🗺️ Mind Mapping</div>
+                        <div class="technique-desc">Visual learning connections</div>
+                    </div>
+                </div>
+
+                <!-- Study Buddy -->
+                <div class="study-buddy fade-in">
+                    <h3>Study Buddies</h3>
+                    
+                    <div class="buddy-status">
+                        <div class="status-indicator"></div>
+                        <span>3 friends studying now</span>
+                    </div>
+                    
+                    <div class="buddy-list">
+                        <div class="buddy-item">
+                            <div class="buddy-avatar">AS</div>
+                            <div class="buddy-info">
+                                <div class="buddy-name">Alex S.</div>
+                                <div class="buddy-status-text">Working on Math</div>
+                            </div>
+                        </div>
+                        <div class="buddy-item">
+                            <div class="buddy-avatar">JD</div>
+                            <div class="buddy-info">
+                                <div class="buddy-name">Jamie D.</div>
+                                <div class="buddy-status-text">Reading History</div>
+                            </div>
+                        </div>
+                        <div class="buddy-item">
+                            <div class="buddy-avatar">TK</div>
+                            <div class="buddy-info">
+                                <div class="buddy-name">Taylor K.</div>
+                                <div class="buddy-status-text">Writing Essay</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sensory Break Reminder -->
+                <div class="sensory-break fade-in">
+                    <h3>🧘 Sensory Break</h3>
+                    <div class="break-timer" id="breakTimer">In 45:00</div>
+                    <div class="break-suggestions">
+                        <div class="break-suggestion">🚶 Walk</div>
+                        <div class="break-suggestion">🎵 Music</div>
+                        <div class="break-suggestion">🫧 Fidget</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+
+    <!-- Footer Credits -->
+    <footer style="background: var(--dark); color: white; padding: 2rem; text-align: center; margin-top: 3rem;">
+        <div style="max-width: 1400px; margin: 0 auto;">
+            <h3 style="margin-bottom: 1rem; color: var(--primary);">Created by Tarruck Wheeler</h3>
+            <p style="margin-bottom: 1.5rem; opacity: 0.9;">
+                Stanford University MIP Student • AI & Public Policy Innovator • Neurodiversity Advocate
+            </p>
+            <div style="display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap;">
+                <a href="https://github.com/TarruckWheeler" target="_blank" 
+                   style="color: white; text-decoration: none; display: flex; align-items: center; gap: 0.5rem; 
+                          padding: 0.5rem 1rem; background: rgba(255,255,255,0.1); border-radius: 8px; 
+                          transition: all 0.3s;"
+                   onmouseover="this.style.background='var(--primary)'; this.style.transform='translateY(-2px)'"
+                   onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.transform='translateY(0)'">
+                    <span>🐙</span> GitHub: TarruckWheeler
+                </a>
+                <a href="mailto:tarruck@stanford.edu" 
+                   style="color: white; text-decoration: none; display: flex; align-items: center; gap: 0.5rem; 
+                          padding: 0.5rem 1rem; background: rgba(255,255,255,0.1); border-radius: 8px; 
+                          transition: all 0.3s;"
+                   onmouseover="this.style.background='var(--primary)'; this.style.transform='translateY(-2px)'"
+                   onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.transform='translateY(0)'">
+                    <span>✉️</span> Email: tarruck@stanford.edu
+                </a>
+                <a href="https://tarruckwheeler.github.io" target="_blank"
+                   style="color: white; text-decoration: none; display: flex; align-items: center; gap: 0.5rem; 
+                          padding: 0.5rem 1rem; background: rgba(255,255,255,0.1); border-radius: 8px; 
+                          transition: all 0.3s;"
+                   onmouseover="this.style.background='var(--primary)'; this.style.transform='translateY(-2px)'"
+                   onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.transform='translateY(0)'">
+                    <span>🌐</span> Portfolio: tarruckwheeler.github.io
+                </a>
+            </div>
+            <p style="margin-top: 1.5rem; font-size: 0.9rem; opacity: 0.7;">
+                © 2024 Tarruck Wheeler. Built with ❤️ for students with learning disabilities.
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // StudyFlow AI Application
+        class StudyFlowApp {
+            constructor() {
+                this.tasks = [];
+                this.timer = null;
+                this.timerSeconds = 25 * 60;
+                this.isTimerRunning = false;
+                this.tasksCompleted = 0;
+                this.totalFocusTime = 0;
+                this.currentView = 'list';
+                
+                // Initialize storage manager
+                this.storage = new StorageManager();
+                
+                this.init();
+            }
+
+            init() {
+                // Hide loader
+                setTimeout(() => {
+                    document.getElementById('loader').classList.add('hidden');
+                }, 1500);
+
+                // Load saved data
+                this.loadData();
+                
+                // Start break timer
+                this.startBreakTimer();
+                
+                // Add sample tasks
+                this.addSampleTasks();
+                
+                // Update stats
+                this.updateStats();
+            }
+
+            handleTaskSubmit(event) {
+                event.preventDefault();
+                const input = document.getElementById('taskInput');
+                const task = input.value.trim();
+                
+                if (task) {
+                    this.breakDownTask(task);
+                    input.value = '';
+                }
+            }
+
+            breakDownTask(task) {
+                // Show AI processing
+                this.showNotification('🤖 AI is breaking down your task...', 'primary');
+                
+                // Simulate AI processing
+                setTimeout(() => {
+                    const breakdown = this.generateTaskBreakdown(task);
+                    this.addTasksToList(breakdown);
+                    this.showNotification('✨ Task breakdown complete!', 'success');
+                }, 1500);
+            }
+
+            generateTaskBreakdown(task) {
+                // AI logic to break down tasks based on common patterns
+                const taskLower = task.toLowerCase();
+                let breakdown = [];
+
+                if (taskLower.includes('essay') || taskLower.includes('paper')) {
+                    breakdown = [
+                        {
+                            title: 'Research and gather sources',
+                            time: 45,
+                            description: 'Find credible sources and take initial notes',
+                            subtasks: [
+                                'Search academic databases',
+                                'Review source credibility',
+                                'Take preliminary notes'
+                            ]
+                        },
+                        {
+                            title: 'Create outline',
+                            time: 30,
+                            description: 'Organize main points and supporting evidence',
+                            subtasks: [
+                                'Write thesis statement',
+                                'List main arguments',
+                                'Organize supporting points'
+                            ]
+                        },
+                        {
+                            title: 'Write first draft',
+                            time: 60,
+                            description: 'Focus on getting ideas down, not perfection',
+                            subtasks: [
+                                'Write introduction',
+                                'Develop body paragraphs',
+                                'Write conclusion'
+                            ]
+                        },
+                        {
+                            title: 'Revise and edit',
+                            time: 30,
+                            description: 'Improve clarity and fix errors',
+                            subtasks: [
+                                'Check argument flow',
+                                'Fix grammar and spelling',
+                                'Format citations'
+                            ]
+                        }
+                    ];
+                } else if (taskLower.includes('study') || taskLower.includes('test') || taskLower.includes('exam')) {
+                    breakdown = [
+                        {
+                            title: 'Review notes and materials',
+                            time: 30,
+                            description: 'Gather all study materials in one place',
+                            subtasks: [
+                                'Organize notes by topic',
+                                'Identify key concepts',
+                                'Mark areas needing review'
+                            ]
+                        },
+                        {
+                            title: 'Create study guide',
+                            time: 45,
+                            description: 'Summarize important information',
+                            subtasks: [
+                                'List main topics',
+                                'Create concept maps',
+                                'Write practice questions'
+                            ]
+                        },
+                        {
+                            title: 'Active practice',
+                            time: 60,
+                            description: 'Test yourself on the material',
+                            subtasks: [
+                                'Do practice problems',
+                                'Quiz yourself',
+                                'Teach concepts to someone'
+                            ]
+                        }
+                    ];
+                } else if (taskLower.includes('read')) {
+                    breakdown = [
+                        {
+                            title: 'Preview the material',
+                            time: 10,
+                            description: 'Skim headings and summaries',
+                            subtasks: [
+                                'Read chapter headings',
+                                'Look at images/diagrams',
+                                'Read summary first'
+                            ]
+                        },
+                        {
+                            title: 'Active reading',
+                            time: 30,
+                            description: 'Read with purpose and engagement',
+                            subtasks: [
+                                'Highlight key points',
+                                'Write margin notes',
+                                'Pause to summarize sections'
+                            ]
+                        },
+                        {
+                            title: 'Review and reflect',
+                            time: 15,
+                            description: 'Solidify understanding',
+                            subtasks: [
+                                'Summarize main ideas',
+                                'Connect to prior knowledge',
+                                'Write questions'
+                            ]
+                        }
+                    ];
+                } else {
+                    // Generic breakdown
+                    breakdown = [
+                        {
+                            title: 'Plan and prepare',
+                            time: 15,
+                            description: 'Get ready to tackle the task',
+                            subtasks: [
+                                'Define clear goals',
+                                'Gather materials',
+                                'Set up workspace'
+                            ]
+                        },
+                        {
+                            title: 'Work on main task',
+                            time: 45,
+                            description: 'Focus on the core work',
+                            subtasks: [
+                                'Start with easiest part',
+                                'Work systematically',
+                                'Take notes as you go'
+                            ]
+                        },
+                        {
+                            title: 'Review and finalize',
+                            time: 20,
+                            description: 'Check your work and wrap up',
+                            subtasks: [
+                                'Review for completeness',
+                                'Make final adjustments',
+                                'Organize for submission'
+                            ]
+                        }
+                    ];
+                }
+
+                return breakdown;
+            }
+
+            addTasksToList(tasks) {
+                const container = document.getElementById('tasksContainer');
+                
+                tasks.forEach((task, index) => {
+                    const taskElement = this.createTaskElement(task);
+                    taskElement.style.animationDelay = `${index * 0.1}s`;
+                    container.appendChild(taskElement);
+                    this.tasks.push(task);
+                });
+            }
+
+            createTaskElement(task) {
+                const taskDiv = document.createElement('div');
+                taskDiv.className = 'task-item fade-in';
+                
+                const subtasksHtml = task.subtasks.map(subtask => `
+                    <div class="subtask">
+                        <input type="checkbox" onchange="window.app.updateProgress(this)">
+                        <span>${subtask}</span>
+                    </div>
+                `).join('');
+
+                taskDiv.innerHTML = `
+                    <div class="task-header">
+                        <div class="task-title">
+                            <input type="checkbox" onchange="window.app.toggleTask(this)">
+                            <span>${task.title}</span>
+                        </div>
+                        <div class="task-time">
+                            <span>⏱️</span>
+                            <span>${task.time} min</span>
+                        </div>
+                    </div>
+                    <div class="task-description">${task.description}</div>
+                    <div class="subtasks">${subtasksHtml}</div>
+                    <div class="task-progress">
+                        <div class="task-progress-bar" style="width: 0%"></div>
+                    </div>
+                `;
+
+                return taskDiv;
+            }
+
+            toggleTask(checkbox) {
+                const taskItem = checkbox.closest('.task-item');
+                
+                if (checkbox.checked) {
+                    taskItem.classList.add('completed');
+                    this.tasksCompleted++;
+                    this.showNotification('🎉 Great job! Task completed!', 'success');
+                    
+                    // Celebration animation
+                    this.celebrate();
+                } else {
+                    taskItem.classList.remove('completed');
+                    this.tasksCompleted--;
+                }
+                
+                this.updateStats();
+            }
+
+            updateProgress(checkbox) {
+                const taskItem = checkbox.closest('.task-item');
+                const subtasks = taskItem.querySelectorAll('.subtask input');
+                const completed = Array.from(subtasks).filter(cb => cb.checked).length;
+                const progress = (completed / subtasks.length) * 100;
+                
+                const progressBar = taskItem.querySelector('.task-progress-bar');
+                progressBar.style.width = `${progress}%`;
+                
+                if (progress === 100) {
+                    this.showNotification('✅ All subtasks complete!', 'success');
+                }
+            }
+
+            // Timer Functions
+            startTimer() {
+                if (!this.isTimerRunning) {
+                    this.isTimerRunning = true;
+                    this.timer = setInterval(() => this.updateTimer(), 1000);
+                    this.showNotification('⏱️ Focus timer started!', 'primary');
+                    
+                    // Optional: Enter focus mode
+                    if (this.timerSeconds > 15 * 60) {
+                        setTimeout(() => {
+                            if (confirm('Would you like to enter focus mode?')) {
+                                document.body.classList.add('focus-mode');
+                            }
+                        }, 3000);
+                    }
+                }
+            }
+
+            pauseTimer() {
+                if (this.isTimerRunning) {
+                    this.isTimerRunning = false;
+                    clearInterval(this.timer);
+                    this.showNotification('⏸️ Timer paused', 'warning');
+                }
+            }
+
+            resetTimer() {
+                this.pauseTimer();
+                this.timerSeconds = 25 * 60;
+                this.updateTimerDisplay();
+                document.body.classList.remove('focus-mode');
+            }
+
+            setTimer(minutes) {
+                this.timerSeconds = minutes * 60;
+                this.updateTimerDisplay();
+            }
+
+            updateTimer() {
+                if (this.timerSeconds > 0) {
+                    this.timerSeconds--;
+                    this.updateTimerDisplay();
+                    
+                    // Update total focus time
+                    this.totalFocusTime++;
+                    
+                    if (this.timerSeconds === 0) {
+                        this.timerComplete();
+                    }
+                }
+            }
+
+            updateTimerDisplay() {
+                const minutes = Math.floor(this.timerSeconds / 60);
+                const seconds = this.timerSeconds % 60;
+                document.getElementById('timerDisplay').textContent = 
+                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+
+            timerComplete() {
+                this.pauseTimer();
+                this.showNotification('🎉 Focus session complete! Time for a break!', 'success');
+                document.body.classList.remove('focus-mode');
+                
+                // Play completion sound
+                this.playSound();
+                
+                // Update stats
+                this.updateStats();
+                
+                // Suggest break
+                setTimeout(() => {
+                    if (confirm('Great work! Would you like to take a 5-minute break?')) {
+                        this.startBreak();
+                    }
+                }, 1000);
+            }
+
+            startBreak() {
+                this.setTimer(5);
+                this.startTimer();
+                this.showNotification('🧘 Break time! Stretch, breathe, or grab water.', 'success');
+            }
+
+            // Break Timer
+            startBreakTimer() {
+                let breakMinutes = 45;
+                
+                setInterval(() => {
+                    breakMinutes--;
+                    
+                    if (breakMinutes <= 0) {
+                        this.showNotification('🧘 Time for a sensory break!', 'warning');
+                        breakMinutes = 45;
+                    }
+                    
+                    document.getElementById('breakTimer').textContent = `In ${breakMinutes}:00`;
+                }, 60000);
+            }
+
+            // Study Techniques
+            showTechnique(technique) {
+                const techniques = {
+                    feynman: {
+                        title: 'Feynman Technique',
+                        steps: [
+                            '1. Choose a concept to learn',
+                            '2. Explain it in simple terms',
+                            '3. Identify gaps in understanding',
+                            '4. Simplify and use analogies'
+                        ]
+                    },
+                    cornell: {
+                        title: 'Cornell Note-Taking',
+                        steps: [
+                            '1. Divide page into 3 sections',
+                            '2. Take notes in main section',
+                            '3. Write questions in left margin',
+                            '4. Summarize at bottom'
+                        ]
+                    },
+                    pomodoro: {
+                        title: 'Pomodoro Technique',
+                        steps: [
+                            '1. Set timer for 25 minutes',
+                            '2. Work with full focus',
+                            '3. Take 5-minute break',
+                            '4. Repeat 4 times, then long break'
+                        ]
+                    },
+                    mindmap: {
+                        title: 'Mind Mapping',
+                        steps: [
+                            '1. Start with central concept',
+                            '2. Add main branches for key ideas',
+                            '3. Add sub-branches for details',
+                            '4. Use colors and images'
+                        ]
+                    }
+                };
+
+                const tech = techniques[technique];
+                if (tech) {
+                    alert(`${tech.title}\n\n${tech.steps.join('\n')}`);
+                }
+            }
+
+            // Other Features
+            createFlashcards() {
+                this.showNotification('🎴 Flashcard creator coming soon!', 'primary');
+            }
+
+            startBodyDouble() {
+                this.showNotification('👥 Connecting to study buddy...', 'primary');
+                setTimeout(() => {
+                    this.showNotification('✅ Connected! You\'re studying with Alex S.', 'success');
+                }, 2000);
+            }
+
+            generateSummary() {
+                this.showNotification('📝 AI summary generator coming soon!', 'primary');
+            }
+
+            setView(view) {
+                this.currentView = view;
+                document.querySelectorAll('.view-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                event.target.classList.add('active');
+                
+                this.showNotification(`Switched to ${view} view`, 'primary');
+            }
+
+            // Utility Functions
+            showNotification(message, type = 'success') {
+                const notification = document.getElementById('notification');
+                notification.textContent = message;
+                notification.className = 'notification show';
+                
+                if (type === 'primary') {
+                    notification.style.background = 'var(--primary)';
+                } else if (type === 'warning') {
+                    notification.style.background = 'var(--warning)';
+                } else {
+                    notification.style.background = 'var(--success)';
+                }
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+
+            celebrate() {
+                // Add celebration animation
+                const celebration = document.createElement('div');
+                celebration.innerHTML = '🎉';
+                celebration.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    font-size: 100px;
+                    z-index: 9999;
+                    animation: celebrate 1s ease-out forwards;
+                `;
+                
+                document.body.appendChild(celebration);
+                
+                setTimeout(() => {
+                    celebration.remove();
+                }, 1000);
+            }
+
+            playSound() {
+                // In a real app, play a completion sound
+                console.log('🔔 Ding!');
+            }
+
+            updateStats() {
+                document.getElementById('tasksCompleted').textContent = this.tasksCompleted;
+                
+                const hours = Math.floor(this.totalFocusTime / 3600);
+                const minutes = Math.floor((this.totalFocusTime % 3600) / 60);
+                document.getElementById('focusTime').textContent = 
+                    hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+            }
+
+            addSampleTasks() {
+                // Add a welcome task
+                const welcomeTask = {
+                    title: 'Welcome to StudyFlow AI!',
+                    time: 5,
+                    description: 'Get familiar with your new study assistant',
+                    subtasks: [
+                        'Try the focus timer',
+                        'Break down a task with AI',
+                        'Explore study techniques'
+                    ]
+                };
+                
+                const taskElement = this.createTaskElement(welcomeTask);
+                document.getElementById('tasksContainer').prepend(taskElement);
+            }
+
+            async saveData() {
+                const data = {
+                    tasksCompleted: this.tasksCompleted,
+                    totalFocusTime: this.totalFocusTime,
+                    tasks: this.tasks
+                };
+                
+                await this.storage.set('studyFlowData', data);
+            }
+
+            async loadData() {
+                const data = await this.storage.get('studyFlowData');
+                if (data) {
+                    this.tasksCompleted = data.tasksCompleted || 0;
+                    this.totalFocusTime = data.totalFocusTime || 0;
+                    this.tasks = data.tasks || [];
+                }
+            }
+        }
+
+        // Storage Manager with Fallback
+        class StorageManager {
+            constructor() {
+                this.useLocalStorage = this.checkLocalStorage();
+                this.memoryStorage = {};
+            }
+
+            checkLocalStorage() {
+                try {
+                    const test = '__sf_test__';
+                    localStorage.setItem(test, test);
+                    localStorage.removeItem(test);
+                    return true;
+                } catch (e) {
+                    // localStorage not available, use memory storage
+                    return false;
+                }
+            }
+
+            async get(key) {
+                try {
+                    if (this.useLocalStorage) {
+                        const value = localStorage.getItem(key);
+                        return value ? JSON.parse(value) : null;
+                    } else {
+                        return this.memoryStorage[key] || null;
+                    }
+                } catch (error) {
+                    return this.memoryStorage[key] || null;
+                }
+            }
+
+            async set(key, value) {
+                try {
+                    const serialized = JSON.stringify(value);
+                    
+                    if (this.useLocalStorage) {
+                        localStorage.setItem(key, serialized);
+                    } else {
+                        this.memoryStorage[key] = value;
+                    }
+                    
+                    return true;
+                } catch (error) {
+                    this.memoryStorage[key] = value;
+                    return false;
+                }
+            }
+        }
+
+        // Initialize app and make it globally accessible
+        let app;
+        window.addEventListener('DOMContentLoaded', () => {
+            app = new StudyFlowApp();
+            // Make app globally accessible for onclick handlers
+            window.app = app;
+        });
+
+        // Add celebration animation styles
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes celebrate {
+                0% {
+                    transform: translate(-50%, -50%) scale(0) rotate(0deg);
+                    opacity: 1;
+                }
+                50% {
+                    transform: translate(-50%, -50%) scale(1.5) rotate(180deg);
+                }
+                100% {
+                    transform: translate(-50%, -50%) scale(0) rotate(360deg);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Save data before leaving
+        window.addEventListener('beforeunload', () => {
+            if (window.app) {
+                window.app.saveData();
+            }
+        });
+    </script>
+</body>
+</html>
